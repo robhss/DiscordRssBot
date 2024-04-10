@@ -1,39 +1,39 @@
+from typing import List, Any
+
 import feedparser
 import os
 import requests
 
 
-def rssCheck(url: str, index) -> set:
+def rss_check(url: str, feed_index: str) -> list[Any]:
     """
     sources new rss feed form designated website
     :return: set of rss items
     """
 
-    if os.path.exists("legacyFeed_{}.xml".format(index)):
-        currentChannel = feedparser.parse(url)
-        legacyChannel = feedparser.parse("legacyFeed_{}.xml".format(index))
+    if os.path.exists("legacyFeed_{}.xml".format(feed_index)):
+        current_channel = feedparser.parse(url)
+        legacy_channel = feedparser.parse("legacyFeed_{}.xml".format(feed_index))
         result = []
 
-        
-        for item in currentChannel['entries']:
+        for item in current_channel['entries']:
             tracker = False
-            for legacyitem in legacyChannel['entries']:
-                if item['title'] == legacyitem['title']:
+            for legacy_item in legacy_channel['entries']:
+                if item['title'] == legacy_item['title']:
                     tracker = True
-            if tracker == False:
-                 result.append(item)
+            if not tracker:
+                result.append(item)
 
-        saveFeed(url, index)
+        save_feed(url, feed_index)
         return result
-            
-    else:
-        saveFeed(url, index)
-        return []
 
-def saveFeed(url, index):
+    else:
+        save_feed(url, feed_index)
+        current_channel = feedparser.parse(url)
+        return [current_channel['entries'][0]]
+
+
+def save_feed(url, index):
     feed = requests.get(url)
     with open("legacyFeed_{}.xml".format(index), "wb") as f:
-                f.write(feed.content)
-
-rssCheck("https://cr-news-api-service.prd.crunchyrollsvc.com/v1/de-DE/rss")
-
+        f.write(feed.content)
